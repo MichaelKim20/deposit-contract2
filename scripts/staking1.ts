@@ -36,7 +36,7 @@ async function main() {
     const admin = new Wallet(process.env.ADMIN_KEY || "");
     const admin_signer = new NonceManager(new GasPriceManager(provider.getSigner(admin.address)));
 
-    const deposit_data = JSON.parse(fs.readFileSync("./validator_keys1/deposit_data-1661904389.json", "utf-8"));
+    const deposit_data = JSON.parse(fs.readFileSync("./validator_keys1/deposit_data.json", "utf-8"));
 
     for (let idx = 0; idx < deposit_data.length; idx++) {
         console.log(`[${idx}] public key: ${deposit_data[idx].pubkey}`);
@@ -55,7 +55,7 @@ async function main() {
         );
 
         if ((idx + 1) % 10 === 0) await delay(10000);
-        else await delay(1000);
+        else await delay(2000);
     }
 }
 
