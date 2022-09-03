@@ -6,3 +6,4 @@
 npx hardhat run scripts/staking6.ts --network devnet
 npx hardhat run scripts/staking7.ts --network devnet
 npx hardhat run scripts/staking8.ts --network devnet
+npx hardhat run scripts/staking9.ts --network devnet
