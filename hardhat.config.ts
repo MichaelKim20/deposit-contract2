@@ -6,6 +6,7 @@ import { HardhatUserConfig, task } from "hardhat/config";
 import { HardhatNetworkAccountUserConfig } from "hardhat/types/config";
 
 import { utils, Wallet } from "ethers";
+import { WellKnownKey } from "./utils/WellKnownKey";
 
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-waffle";
@@ -40,22 +41,25 @@ function createPrivateKey() {
 createPrivateKey();
 
 function getAccounts() {
-    return [process.env.ADMIN_KEY || ""];
+    const accounts = [process.env.ADMIN_KEY || ""];
+    accounts.push(...WellKnownKey.keys);
+    return accounts;
 }
 
 function getTestAccounts() {
     const accounts: HardhatNetworkAccountUserConfig[] = [];
     const defaultBalance = utils.parseEther("2000000").toString();
+    accounts.push({
+        privateKey: process.env.ADMIN_KEY || "",
+        balance: defaultBalance,
+    });
 
-    const n = 10;
-    for (let i = 0; i < n; ++i) {
+    for (let idx = 0; idx < WellKnownKey.keys.length; idx++) {
         accounts.push({
-            privateKey: Wallet.createRandom().privateKey,
+            privateKey: WellKnownKey.keys[idx],
             balance: defaultBalance,
         });
     }
-    accounts[0].privateKey = process.env.ADMIN_KEY || "";
-
     return accounts;
 }
 
