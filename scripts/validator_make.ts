@@ -6,9 +6,10 @@
 
 import { WellKnownKey } from "../utils/WellKnownKey";
 
-import { Wallet } from "ethers";
+import { BigNumber, Wallet } from "ethers";
 
 import fs from "fs";
+import { BOACoin } from "../utils/Amount";
 
 interface IDepositData {
     pubkey: string;
@@ -60,6 +61,19 @@ async function main() {
         validators[n].deposit_data.push(m);
     }
     const validators2 = validators.filter((m) => m.deposit_data.length > 0);
+    let length = 0;
+    let count = 0;
+    let amount: BigNumber = BigNumber.from(0);
+    for (const validator of validators2) {
+        const amount1 = BOACoin.make("40000.02").value.mul(BigNumber.from(validator.deposit_data.length));
+        amount = amount.add(amount1);
+        if (validator.deposit_data.length > 0) count++;
+        length += validator.deposit_data.length;
+    }
+    console.log("number of validators : ", validators2.length);
+    console.log("effective number of validators : ", count);
+    console.log("amount : ", new BOACoin(amount).toBOAString());
+
     console.log(JSON.stringify(validators2));
 }
 

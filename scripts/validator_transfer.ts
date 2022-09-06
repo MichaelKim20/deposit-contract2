@@ -47,7 +47,7 @@ async function main() {
     let count = 0;
     let amount: BigNumber = BigNumber.from(0);
     for (const validator of validators) {
-        const amount1 = BOACoin.make("40000.02").value.mul(BigNumber.from(validator.deposit_data.length));
+        const amount1 = BOACoin.make("40000.002").value.mul(BigNumber.from(validator.deposit_data.length));
         amount = amount.add(amount1);
         if (validator.deposit_data.length > 0) count++;
     }
@@ -58,6 +58,9 @@ async function main() {
     const provider = ethers.provider;
     const admin = new Wallet(process.env.ADMIN_KEY || "");
     const admin_signer = new NonceManager(new GasPriceManager(provider.getSigner(admin.address)));
+    console.log(`Admin address : ${admin.address}`);
+    const admin_balance = await provider.getBalance(admin.address);
+    console.log(`Admin balance : ${new BOACoin(admin_balance).toBOAString()}`);
 
     // send deposit amount
     let validator_idx = 0;
@@ -66,7 +69,7 @@ async function main() {
 
         await admin_signer.sendTransaction({
             to: validator.address,
-            value: BOACoin.make("40000.02").value.mul(BigNumber.from(validator.deposit_data.length)),
+            value: BOACoin.make("40000.002").value.mul(BigNumber.from(validator.deposit_data.length)),
         });
         if ((validator_idx + 1) % 10 === 0) await delay(10000);
         else await delay(1000);
