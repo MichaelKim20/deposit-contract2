@@ -47,7 +47,7 @@ async function main() {
     let count = 0;
     let amount: BigNumber = BigNumber.from(0);
     for (const validator of validators) {
-        const amount1 = BOACoin.make("40000.002").value.mul(BigNumber.from(validator.deposit_data.length));
+        const amount1 = BOACoin.make("40000.02").value.mul(BigNumber.from(validator.deposit_data.length));
         amount = amount.add(amount1);
         if (validator.deposit_data.length > 0) count++;
     }
@@ -69,7 +69,7 @@ async function main() {
 
         await admin_signer.sendTransaction({
             to: validator.address,
-            value: BOACoin.make("40000.002").value.mul(BigNumber.from(validator.deposit_data.length)),
+            value: BOACoin.make("40000.02").value.mul(BigNumber.from(validator.deposit_data.length)),
         });
         if ((validator_idx + 1) % 10 === 0) await delay(10000);
         else await delay(1000);
