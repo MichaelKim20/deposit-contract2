@@ -101,6 +101,11 @@ const config: HardhatUserConfig = {
             chainId: 2155,
             accounts: getAccounts(),
         },
+        merge: {
+            url: process.env.MERGE_URL || "",
+            chainId: 215588,
+            accounts: getAccounts(),
+        },
         michael: {
             url: process.env.MICHAEL_URL || "",
             chainId: 34559,
