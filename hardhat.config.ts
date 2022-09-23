@@ -106,9 +106,9 @@ const config: HardhatUserConfig = {
             chainId: 215588,
             accounts: getAccounts(),
         },
-        merge2: {
-            url: process.env.MERGE2_URL || "",
-            chainId: 215577,
+        bellatrix: {
+            url: process.env.BELLATRIX_URL || "",
+            chainId: 215545,
             accounts: getAccounts(),
         },
         michael: {
