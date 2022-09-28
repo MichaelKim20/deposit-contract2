@@ -8,7 +8,8 @@ import { BigNumber, Wallet } from "ethers";
 
 import fs from "fs";
 import { BOACoin } from "../utils/Amount";
-
+// tslint:disable-next-line:no-var-requires
+const { toChecksumAddress } = require("ethereum-checksum-address");
 function prefix0X(key: string): string {
     return `0x${key}`;
 }
@@ -45,12 +46,15 @@ async function main() {
             fee_recipient: undefined,
         },
     };
+
     for (const deposit of deposit_data) {
         // @ts-ignore
-        result.proposer_config[prefix0X(deposit.pubkey)] = { fee_recipient: prefix0X(deposit.voter) };
+        result.proposer_config[prefix0X(deposit.pubkey)] = {
+            fee_recipient: toChecksumAddress(prefix0X(deposit.voter.substring(24))),
+        };
     }
     // @ts-ignore
-    result.default_config.fee_recipient = prefix0X(deposit_data[0].voter);
+    result.default_config.fee_recipient = toChecksumAddress(prefix0X(deposit_data[0].voter.substring(24)));
     console.log(JSON.stringify(result));
 }
 
