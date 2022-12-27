@@ -1,0 +1,11 @@
+npx hardhat run scripts/staking0.ts --network mainnet
+npx hardhat run scripts/staking1.ts --network mainnet
+npx hardhat run scripts/staking2.ts --network mainnet
+npx hardhat run scripts/staking3.ts --network mainnet
+npx hardhat run scripts/staking4.ts --network mainnet
+npx hardhat run scripts/staking5.ts --network mainnet
+npx hardhat run scripts/staking6.ts --network mainnet
+npx hardhat run scripts/staking7.ts --network mainnet
+npx hardhat run scripts/staking8.ts --network mainnet
+npx hardhat run scripts/staking9.ts --network mainnet
+npx hardhat run scripts/stakinga.ts --network mainnet
