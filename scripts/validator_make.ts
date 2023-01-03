@@ -31,7 +31,6 @@ interface IValidator {
 async function main() {
     const deposit_data: IDepositData[] = [];
     deposit_data.push(...JSON.parse(fs.readFileSync("./validator_keys1/deposit_data.json", "utf-8")));
-    deposit_data.push(...JSON.parse(fs.readFileSync("./validator_keys2/deposit_data.json", "utf-8")));
 
     const size = 100;
     let page = 0;

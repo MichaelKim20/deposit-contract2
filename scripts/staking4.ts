@@ -39,7 +39,7 @@ async function main() {
     const deposit_data = JSON.parse(fs.readFileSync("./validator_keys1/deposit_data_sub4.json", "utf-8"));
 
     for (let idx = 0; idx < deposit_data.length; idx++) {
-        console.log(`[${idx}] public key: ${deposit_data[idx].pubkey}`);
+        console.log(`[${deposit_data[idx].idx}] public key: ${deposit_data[idx].pubkey}`);
 
         await contract.connect(admin_signer).deposit_with_voter(
             prefix0X(deposit_data[idx].pubkey),
