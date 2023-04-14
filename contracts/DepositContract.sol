@@ -11,34 +11,7 @@
 
 pragma solidity 0.8.16;
 
-// This interface is designed to be compatible with the Vyper version.
-/// @notice This is the Ethereum 2.0 deposit contract interface.
-/// For more information see the Phase 0 specification under https://github.com/ethereum/eth2.0-specs
-interface IDepositContract {
-    /// @notice A processed deposit event.
-    event DepositEvent(bytes pubkey, bytes withdrawal_credentials, bytes amount, bytes signature, bytes index);
-
-    /// @notice Submit a Phase 0 DepositData object.
-    /// @param pubkey A BLS12-381 public key.
-    /// @param withdrawal_credentials Commitment to a public key for withdrawals.
-    /// @param signature A BLS12-381 signature.
-    /// @param deposit_data_root The SHA-256 hash of the SSZ-encoded DepositData object.
-    /// Used as a protection against malformed input.
-    function deposit(
-        bytes calldata pubkey,
-        bytes calldata withdrawal_credentials,
-        bytes calldata signature,
-        bytes32 deposit_data_root
-    ) external payable;
-
-    /// @notice Query the current deposit root hash.
-    /// @return The deposit root hash.
-    function get_deposit_root() external view returns (bytes32);
-
-    /// @notice Query the current deposit count.
-    /// @return The deposit count encoded as a little endian 64-bit number.
-    function get_deposit_count() external view returns (bytes memory);
-}
+import "./IDepositContract.sol";
 
 // Based on official specification in https://eips.ethereum.org/EIPS/eip-165
 interface ERC165 {
@@ -51,33 +24,6 @@ interface ERC165 {
     function supportsInterface(bytes4 interfaceId) external pure returns (bool);
 }
 
-interface IAgoraDepositContract is IDepositContract {
-    /// @notice Submit a VotertData object.
-    /// @param voter eth1 address for Votera.
-    /// @param signature A BLS12-381 signature.
-    /// @param data_root The SHA-256 hash of the SSZ-encoded VoterData object.
-    struct VoterInfo {
-        address voter;
-        bytes signature;
-        bytes32 data_root;
-    }
-
-    /// @notice Submit a Phase 0 DepositData object.
-    /// @param pubkey A BLS12-381 public key.
-    /// @param withdrawal_credentials Commitment to a public key for withdrawals.
-    /// @param signature A BLS12-381 signature.
-    /// @param deposit_data_root The SHA-256 hash of the SSZ-encoded DepositData object.
-    /// Used as a protection against malformed input.
-    /// @param voter_info VotertData object.
-    function deposit_with_voter(
-        bytes calldata pubkey,
-        bytes calldata withdrawal_credentials,
-        bytes calldata signature,
-        bytes32 deposit_data_root,
-        VoterInfo calldata voter_info
-    ) external payable;
-}
-
 // This is a rewrite of the Vyper Eth2.0 deposit contract in Solidity.
 // It tries to stay as close as possible to the original source code.
 /// @notice This is the Ethereum 2.0 deposit contract interface.
@@ -85,7 +31,7 @@ interface IAgoraDepositContract is IDepositContract {
 contract DepositContract is IDepositContract, ERC165 {
     uint constant DEPOSIT_CONTRACT_TREE_DEPTH = 32;
     // NOTE: this also ensures `deposit_count` will fit into 64-bits
-    uint constant MAX_DEPOSIT_COUNT = 2**DEPOSIT_CONTRACT_TREE_DEPTH - 1;
+    uint constant MAX_DEPOSIT_COUNT = 2 ** DEPOSIT_CONTRACT_TREE_DEPTH - 1;
 
     bytes32[DEPOSIT_CONTRACT_TREE_DEPTH] branch;
     uint256 deposit_count;
@@ -98,24 +44,18 @@ contract DepositContract is IDepositContract, ERC165 {
             zero_hashes[height + 1] = sha256(abi.encodePacked(zero_hashes[height], zero_hashes[height]));
     }
 
-    function get_deposit_root() override external view returns (bytes32) {
+    function get_deposit_root() external view override returns (bytes32) {
         bytes32 node;
         uint size = deposit_count;
         for (uint height = 0; height < DEPOSIT_CONTRACT_TREE_DEPTH; height++) {
-            if ((size & 1) == 1)
-                node = sha256(abi.encodePacked(branch[height], node));
-            else
-                node = sha256(abi.encodePacked(node, zero_hashes[height]));
+            if ((size & 1) == 1) node = sha256(abi.encodePacked(branch[height], node));
+            else node = sha256(abi.encodePacked(node, zero_hashes[height]));
             size /= 2;
         }
-        return sha256(abi.encodePacked(
-                node,
-                to_little_endian_64(uint64(deposit_count)),
-                bytes24(0)
-            ));
+        return sha256(abi.encodePacked(node, to_little_endian_64(uint64(deposit_count)), bytes24(0)));
     }
 
-    function get_deposit_count() override external view returns (bytes memory) {
+    function get_deposit_count() external view override returns (bytes memory) {
         return to_little_endian_64(uint64(deposit_count));
     }
 
@@ -188,30 +128,44 @@ contract AgoraDepositContract is DepositContract, IAgoraDepositContract {
 
         // Compute deposit data root (`DepositData` hash tree root)
         bytes32 pubkey_root = sha256(abi.encodePacked(pubkey, bytes16(0)));
-        bytes32 signature_root = sha256(abi.encodePacked(
+        bytes32 signature_root = sha256(
+            abi.encodePacked(
                 sha256(abi.encodePacked(signature[:64])),
                 sha256(abi.encodePacked(signature[64:], bytes32(0)))
-            ));
-        bytes32 node = sha256(abi.encodePacked(
+            )
+        );
+        bytes32 node = sha256(
+            abi.encodePacked(
                 sha256(abi.encodePacked(pubkey_root, withdrawal_credentials)),
                 sha256(abi.encodePacked(amount, bytes24(0), signature_root))
-            ));
+            )
+        );
 
         // Verify computed and expected deposit data roots match
-        require(node == deposit_data_root, "DepositContract: reconstructed DepositData does not match supplied deposit_data_root");
+        require(
+            node == deposit_data_root,
+            "DepositContract: reconstructed DepositData does not match supplied deposit_data_root"
+        );
 
         // Compute voter data root (`VoterData` hash tree root)
-        bytes32 voter_signature_root = sha256(abi.encodePacked(
+        bytes32 voter_signature_root = sha256(
+            abi.encodePacked(
                 sha256(abi.encodePacked(voter_info.signature[:64])),
                 sha256(abi.encodePacked(voter_info.signature[64:], bytes32(0)))
-            ));
-        bytes32 voter_node = sha256(abi.encodePacked(
+            )
+        );
+        bytes32 voter_node = sha256(
+            abi.encodePacked(
                 sha256(abi.encodePacked(pubkey_root, abi.encodePacked(bytes12(0), voter_info.voter))),
                 sha256(abi.encodePacked(amount, bytes24(0), voter_signature_root))
-            ));
+            )
+        );
 
         // Verify computed and expected voter data roots match
-        require(voter_node == voter_info.data_root, "DepositContract: reconstructed VoterData does not match supplied voter_data_root");
+        require(
+            voter_node == voter_info.data_root,
+            "DepositContract: reconstructed VoterData does not match supplied voter_data_root"
+        );
 
         // Avoid overflowing the Merkle tree (and prevent edge case in computing `branch`)
         require(deposit_count < MAX_DEPOSIT_COUNT, "DepositContract: merkle tree full");
@@ -234,8 +188,8 @@ contract AgoraDepositContract is DepositContract, IAgoraDepositContract {
 
     function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {
         return
-        interfaceId == type(ERC165).interfaceId ||
-        interfaceId == type(IDepositContract).interfaceId ||
-        interfaceId == type(IAgoraDepositContract).interfaceId;
+            interfaceId == type(ERC165).interfaceId ||
+            interfaceId == type(IDepositContract).interfaceId ||
+            interfaceId == type(IAgoraDepositContract).interfaceId;
     }
 }

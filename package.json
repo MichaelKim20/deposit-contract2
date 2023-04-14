@@ -1,6 +1,6 @@
 {
-  "name": "deposit-contract",
-  "version": "1.0.0",
+  "name": "@bosagora/deposit-contract",
+  "version": "1.0.1",
   "description": "deposit contract",
   "main": "",
   "directories": {
@@ -12,13 +12,13 @@
     "test": "hardhat test"
   },
   "repository": {
-    "type": "git+https://github.com/zeroone-boa/deposit-contract.git",
+    "type": "git+https://github.com/bosagora/deposit-contract.git",
     "url": ""
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/zeroone-boa/deposit-contract/issues"
+    "url": "https://github.com/bosagora/deposit-contract/issues"
   },
   "homepage": "",
   "devDependencies": {
